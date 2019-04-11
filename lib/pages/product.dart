@@ -8,26 +8,32 @@ class ProductPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Column(
-        children: <Widget>[
-          Image.asset(imageUrl),
-          Container(
-            child: Text(title),
-            padding: EdgeInsets.all(10.0),
-          ),
-          Container(
-            child: RaisedButton(
-              color: Theme.of(context).accentColor,
-              child: Text('Delete'),
-              onPressed: () => Navigator.pop(context, true),
+    return WillPopScope(
+      onWillPop: () {
+        Navigator.pop(context, false);
+        return Future.value(false);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(title),
+        ),
+        body: Column(
+          children: <Widget>[
+            Image.asset(imageUrl),
+            Container(
+              child: Text(title),
+              padding: EdgeInsets.all(10.0),
             ),
-            padding: EdgeInsets.all(5.0),
-          )
-        ],
+            Container(
+              child: RaisedButton(
+                color: Theme.of(context).accentColor,
+                child: Text('Delete'),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+              padding: EdgeInsets.all(5.0),
+            )
+          ],
+        ),
       ),
     );
   }
