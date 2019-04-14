@@ -42,14 +42,28 @@ class Products extends StatelessWidget {
                   ),
                 ],
               )),
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 7.0),
+            decoration: BoxDecoration(
+              border: Border.all(
+                  color: Colors.grey, width: 1.0, style: BorderStyle.solid),
+              borderRadius: BorderRadius.circular(6.0),
+            ),
+            child: Text('Union Square, New York City'),
+          ),
           ButtonBar(
             alignment: MainAxisAlignment.center,
             children: <Widget>[
-              FlatButton(
-                child: Text('Details'),
+              IconButton(
+                icon: Icon(Icons.info),
+                color: Theme.of(context).primaryColor,
                 onPressed: () => Navigator.pushNamed<bool>(
                     context, '/product/' + index.toString()),
-              )
+              ),
+              IconButton(
+                  icon: Icon(Icons.favorite_border),
+                  color: Colors.red,
+                  onPressed: () {})
             ],
           )
         ],

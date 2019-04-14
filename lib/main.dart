@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import './model/product_model.dart';
 import './pages/auth.dart';
 import './pages/product.dart';
 import './pages/products.dart';
@@ -50,8 +51,15 @@ class _MyAppState extends State<MyApp> {
           final int index = int.parse(pathElements[2]);
 
           return MaterialPageRoute<bool>(
-            builder: (context) => ProductPage(
-                _products[index]['title'], _products[index]['imageUrl']),
+            builder: (context) {
+              ProductModel product = ProductModel(
+                _products[index]['title'],
+                _products[index]['description'],
+                _products[index]['imageUrl'],
+                _products[index]['price'],
+              );
+              return ProductPage(product);
+            },
           );
         }
         return null;
