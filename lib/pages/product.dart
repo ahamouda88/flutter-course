@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/product_model.dart';
+import '../widgets/ui_elements/title_default.dart';
 
 class ProductPage extends StatelessWidget {
   final ProductModel product;
@@ -31,6 +32,22 @@ class ProductPage extends StatelessWidget {
 //        });
 //  }
 
+  Widget _buildAddressPriceRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text('Union Square, New York City',
+            style: TextStyle(fontFamily: 'Oswald', color: Colors.grey)),
+        Container(
+          child: Text('|', style: TextStyle(color: Colors.grey)),
+          margin: EdgeInsets.symmetric(horizontal: 5.0),
+        ),
+        Text('\$' + product.price.toString(),
+            style: TextStyle(fontFamily: 'Oswald', color: Colors.grey)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -46,29 +63,10 @@ class ProductPage extends StatelessWidget {
           children: <Widget>[
             Image.asset(product.image),
             Container(
-              child: Text(
-                product.title,
-                style: TextStyle(
-                  fontSize: 26.0,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Oswald',
-                ),
-              ),
+              child: TitleDefault(product.title),
               padding: EdgeInsets.all(10.0),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text('Union Square, New York City',
-                    style: TextStyle(fontFamily: 'Oswald', color: Colors.grey)),
-                Container(
-                  child: Text('|', style: TextStyle(color: Colors.grey)),
-                  margin: EdgeInsets.symmetric(horizontal: 5.0),
-                ),
-                Text('\$' + product.price.toString(),
-                    style: TextStyle(fontFamily: 'Oswald', color: Colors.grey)),
-              ],
-            ),
+            _buildAddressPriceRow(),
             Container(
               padding: EdgeInsets.all(10.0),
               child: Text(
