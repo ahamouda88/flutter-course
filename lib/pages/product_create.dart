@@ -12,53 +12,64 @@ class ProductCreatePage extends StatefulWidget {
 }
 
 class _ProductCreatePageState extends State<ProductCreatePage> {
-  String _titleValue = '';
-  String _descValue = '';
-  double _priceValue = 0.0;
+  final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
+  final Map<String, dynamic> _formData = {
+    'title': null,
+    'description': null,
+    'price': null,
+    'imageUrl': 'assets/food.jpg'
+  };
 
   Widget _buildTitleTextField() {
-    return TextField(
+    return TextFormField(
       decoration: InputDecoration(labelText: 'Product Title'),
-      onChanged: (String value) {
-        setState(() {
-          _titleValue = value;
-        });
+      validator: (String value) {
+        if (value.trim().length < 5) {
+          return 'Title is Required and should be 5+ chars!';
+        }
+      },
+      onSaved: (String value) {
+        _formData['title'] = value;
       },
     );
   }
 
   Widget _buildDescriptionTextField() {
-    return TextField(
+    return TextFormField(
       decoration: InputDecoration(labelText: 'Product Description'),
       maxLines: 4,
-      onChanged: (String value) {
-        setState(() {
-          _descValue = value;
-        });
+      validator: (String value) {
+        if (value.trim().length < 5) {
+          return 'Description is Required and should be 10+ chars!';
+        }
+      },
+      onSaved: (String value) {
+        _formData['description'] = value;
       },
     );
   }
 
   Widget _buildPriceTextField() {
-    return TextField(
+    return TextFormField(
       decoration: InputDecoration(labelText: 'Product Price'),
       keyboardType: TextInputType.number,
-      onChanged: (String value) {
-        setState(() {
-          _priceValue = double.parse(value);
-        });
+      validator: (String value) {
+        if (value.isEmpty ||
+            !RegExp(r'^(?:[1-9]\d*|0)?(?:\.\d+)?$').hasMatch(value)) {
+          return 'Price is Required and should be a number!';
+        }
+      },
+      onSaved: (String value) {
+        _formData['price'] = double.parse(value);
       },
     );
   }
 
   void _saveProduct() {
-    Map<String, dynamic> product = {
-      'title': _titleValue,
-      'description': _descValue,
-      'price': _priceValue,
-      'imageUrl': 'assets/food.jpg'
-    };
-    widget.addProduct(product);
+    if (!_globalKey.currentState.validate()) return;
+    _globalKey.currentState.save();
+
+    widget.addProduct(_formData);
     Navigator.pushReplacementNamed(context, '/products');
   }
 
@@ -67,20 +78,26 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
     final double deviceWidth = MediaQuery.of(context).size.width;
     final double targetWidth = deviceWidth > 550.0 ? 500 : deviceWidth * 0.95;
     final double targetPadding = deviceWidth - targetWidth;
-    return Container(
-      margin: EdgeInsets.all(10.0),
-      child: ListView(
-        padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
-        children: <Widget>[
-          _buildTitleTextField(),
-          _buildDescriptionTextField(),
-          _buildPriceTextField(),
-          SizedBox(height: 10.0),
-          RaisedButton(
-            textColor: Colors.white,
-            child: Text('Save'),
-            onPressed: _saveProduct,
-          ),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).requestFocus(FocusNode());
+      },
+      child: Container(
+        margin: EdgeInsets.all(10.0),
+        child: Form(
+          key: _globalKey,
+          child: ListView(
+            padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
+            children: <Widget>[
+              _buildTitleTextField(),
+              _buildDescriptionTextField(),
+              _buildPriceTextField(),
+              SizedBox(height: 10.0),
+              RaisedButton(
+                textColor: Colors.white,
+                child: Text('Save'),
+                onPressed: _saveProduct,
+              ),
 //          GestureDetector(
 //            onTap: _saveProduct,
 //            child: Container(
@@ -93,7 +110,9 @@ class _ProductCreatePageState extends State<ProductCreatePage> {
 //              padding: EdgeInsets.all(5.0),
 //            ),
 //          )
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
