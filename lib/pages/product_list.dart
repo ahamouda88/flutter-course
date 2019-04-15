@@ -1,10 +1,39 @@
 import 'package:flutter/material.dart';
 
+import './product_edit.dart';
+
 class ProductListPage extends StatelessWidget {
+  final Function updateProduct;
+  final List<Map<String, dynamic>> products;
+
+  ProductListPage(this.updateProduct, this.products);
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('List of Products'),
+    return ListView.builder(
+      itemBuilder: (BuildContext context, int index) {
+        return ListTile(
+          leading: Image.asset(
+            products[index]['imageUrl'],
+            width: 100.0,
+          ),
+          title: Text(products[index]['title']),
+          trailing: IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ProductEditPage(
+                          product: products[index],
+                          updateProduct: updateProduct,
+                          productIndex: index,
+                        ),
+                  ),
+                );
+              }),
+        );
+      },
+      itemCount: products.length,
     );
   }
 }
