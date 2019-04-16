@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import './address_tag.dart';
 import './price_tag.dart';
-import '../../models/product_model.dart';
+import '../../models/product.dart';
 import '../ui_elements/title_default.dart';
 
 class ProductCard extends StatelessWidget {
-  final ProductModel product;
+  final Product product;
   final int productIndex;
 
   ProductCard(this.product, this.productIndex);

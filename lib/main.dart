@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import './models/product_model.dart';
+import './models/product.dart';
 import './pages/auth.dart';
 import './pages/product.dart';
 import './pages/products.dart';
@@ -16,15 +16,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final List<ProductModel> _products = [];
+  final List<Product> _products = [];
 
-  void _addProduct(ProductModel product) {
+  void _addProduct(Product product) {
     setState(() {
       _products.add(product);
     });
   }
 
-  void _updateProduct(int index, ProductModel product) {
+  void _updateProduct(int index, Product product) {
     setState(() {
       _products[index] = product;
     });

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class ProductModel {
+class Product {
   final String title;
   final String description;
   final String image;
   final double price;
 
-  ProductModel({
+  Product({
     @required this.title,
     @required this.description,
     @required this.image,

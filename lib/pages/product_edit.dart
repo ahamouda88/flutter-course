@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../models/product_model.dart';
+import '../models/product.dart';
 
 class ProductEditPage extends StatefulWidget {
   final Function addProduct;
   final Function updateProduct;
-  final ProductModel product;
+  final Product product;
   final int productIndex;
 
   ProductEditPage(
@@ -79,7 +79,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     if (!_globalKey.currentState.validate()) return;
     _globalKey.currentState.save();
 
-    ProductModel product = ProductModel(
+    Product product = Product(
       title: _formData['title'],
       image: _formData['imageUrl'],
       description: _formData['description'],

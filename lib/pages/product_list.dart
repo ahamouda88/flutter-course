@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import './product_edit.dart';
-import '../models/product_model.dart';
+import '../models/product.dart';
 
 class ProductListPage extends StatelessWidget {
   final Function updateProduct;
   final Function deleteProduct;
-  final List<ProductModel> products;
+  final List<Product> products;
 
   ProductListPage(this.updateProduct, this.deleteProduct, this.products);
 
