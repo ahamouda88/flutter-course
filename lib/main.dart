@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:scoped_model/scoped_model.dart';
 
-import './models/product.dart';
 import './pages/auth.dart';
 import './pages/product.dart';
 import './pages/products.dart';
 import './pages/products_admin.dart';
+import './scoped_models/products_model.dart';
 
 void main() => runApp(MyApp());
 
@@ -16,67 +17,43 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final List<Product> _products = [];
-
-  void _addProduct(Product product) {
-    setState(() {
-      _products.add(product);
-    });
-  }
-
-  void _updateProduct(int index, Product product) {
-    setState(() {
-      _products[index] = product;
-    });
-  }
-
-  void _deleteProduct(int index) {
-    setState(() {
-      _products.removeAt(index);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        primaryColor: Colors.red,
-        accentColor: Colors.purpleAccent,
-        buttonColor: Colors.purple,
-      ),
-      routes: {
-        '/': (context) => AuthPage(),
-        '/admin': (context) => ProductsAdminPage(
-            _addProduct, _updateProduct, _deleteProduct, _products),
-        '/products': (context) => ProductsPage(_products),
-      },
-      onGenerateRoute: (RouteSettings settings) {
-        // Example: /product/1 => '', 'product', '1'
-        final List<String> pathElements = settings.name.split('/');
-        if (pathElements[0] != '') return null;
+    return ScopedModel<ProductsModel>(
+      model: ProductsModel(),
+      child: MaterialApp(
+        theme: ThemeData(
+          primaryColor: Colors.red,
+          accentColor: Colors.purpleAccent,
+          buttonColor: Colors.purple,
+        ),
+        routes: {
+          '/': (context) => AuthPage(),
+          '/admin': (context) => ProductsAdminPage(),
+          '/products': (context) => ProductsPage(),
+        },
+        onGenerateRoute: (RouteSettings settings) {
+          // Example: /product/1 => '', 'product', '1'
+          final List<String> pathElements = settings.name.split('/');
+          if (pathElements[0] != '') return null;
 
-        if (pathElements[1] == 'product') {
-          final int index = int.parse(pathElements[2]);
+          if (pathElements[1] == 'product') {
+            final int index = int.parse(pathElements[2]);
 
-          return MaterialPageRoute<bool>(
-            builder: (context) {
-//              ProductModel product = ProductModel(
-//                _products[index]['title'],
-//                _products[index]['description'],
-//                _products[index]['imageUrl'],
-//                _products[index]['price'],
-//              );
-              return ProductPage(_products[index]);
-            },
+            return MaterialPageRoute<bool>(
+              builder: (context) {
+                return ProductPage(index);
+              },
+            );
+          }
+          return null;
+        },
+        onUnknownRoute: (RouteSettings settings) {
+          return MaterialPageRoute(
+            builder: (context) => ProductsPage(),
           );
-        }
-        return null;
-      },
-      onUnknownRoute: (RouteSettings settings) {
-        return MaterialPageRoute(
-          builder: (context) => ProductsPage(_products),
-        );
-      },
+        },
+      ),
     );
   }
 }

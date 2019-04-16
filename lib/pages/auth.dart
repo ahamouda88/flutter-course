@@ -70,10 +70,11 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   void _login() {
-    if (_globalKey.currentState.validate() && _formData['acceptTerms']) {
-      _globalKey.currentState.save();
-      Navigator.pushReplacementNamed(context, '/products');
-    }
+    // TODO: enable validation later
+    //if (_globalKey.currentState.validate() && _formData['acceptTerms']) {
+    _globalKey.currentState.save();
+    Navigator.pushReplacementNamed(context, '/products');
+    // }
   }
 
   @override
