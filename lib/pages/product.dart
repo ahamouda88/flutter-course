@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../model/product_model.dart';
+import '../models/product_model.dart';
 import '../widgets/ui_elements/title_default.dart';
 
 class ProductPage extends StatelessWidget {
