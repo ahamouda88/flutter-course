@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../models/product.dart';
-import '../scoped_models/products_model.dart';
+import '../scoped_models/main_model.dart';
 
 class ProductEditPage extends StatefulWidget {
   @override
@@ -87,7 +87,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     Navigator.pushReplacementNamed(context, '/products');
   }
 
-  Widget _buildSubmitButton(ProductsModel model) {
+  Widget _buildSubmitButton(MainModel model) {
     return RaisedButton(
       textColor: Colors.white,
       child: Text('Save'),
@@ -96,7 +96,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  Widget _buildPageContent(BuildContext context, ProductsModel model) {
+  Widget _buildPageContent(BuildContext context, MainModel model) {
     final double deviceWidth = MediaQuery.of(context).size.width;
     final double targetWidth = deviceWidth > 550.0 ? 500 : deviceWidth * 0.95;
     final double targetPadding = deviceWidth - targetWidth;
@@ -138,8 +138,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<ProductsModel>(
-      builder: (BuildContext context, Widget child, ProductsModel model) {
+    return ScopedModelDescendant<MainModel>(
+      builder: (BuildContext context, Widget child, MainModel model) {
         final Widget pageContent = _buildPageContent(context, model);
         return model.selectedProductIndex == null
             ? pageContent
