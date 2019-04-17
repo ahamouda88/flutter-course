@@ -10,9 +10,13 @@ class ProductListPage extends StatelessWidget {
         icon: Icon(Icons.edit),
         onPressed: () {
           model.setSelectedProduct(index);
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => ProductEditPage()),
-          );
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(builder: (context) => ProductEditPage()),
+              )
+              .then(
+                (_) => model.setSelectedProduct(null),
+              );
         });
   }
 

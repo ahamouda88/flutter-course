@@ -68,23 +68,29 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  void _submitForm(Function addProduct, Function updateProduct,
+  void _submitForm(
+      Function addProduct, Function updateProduct, Function selectProduct,
       [int selectedProductIndex]) {
     if (!_globalKey.currentState.validate()) return;
     _globalKey.currentState.save();
 
-    Product currentProduct = Product(
-      title: _formData['title'],
-      image: _formData['imageUrl'],
-      description: _formData['description'],
-      price: _formData['price'],
-    );
     if (selectedProductIndex == null) {
-      addProduct(currentProduct);
+      addProduct(
+        _formData['title'],
+        _formData['description'],
+        _formData['imageUrl'],
+        _formData['price'],
+      );
     } else {
-      updateProduct(currentProduct);
+      updateProduct(
+        _formData['title'],
+        _formData['description'],
+        _formData['imageUrl'],
+        _formData['price'],
+      );
     }
-    Navigator.pushReplacementNamed(context, '/products');
+    Navigator.pushReplacementNamed(context, '/products')
+        .then((_) => selectProduct(null));
   }
 
   Widget _buildSubmitButton(MainModel model) {
@@ -92,7 +98,11 @@ class _ProductEditPageState extends State<ProductEditPage> {
       textColor: Colors.white,
       child: Text('Save'),
       onPressed: () => _submitForm(
-          model.addProduct, model.updateProduct, model.selectedProductIndex),
+            model.addProduct,
+            model.updateProduct,
+            model.setSelectedProduct,
+            model.getSelectedProductIndex,
+          ),
     );
   }
 
@@ -141,7 +151,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     return ScopedModelDescendant<MainModel>(
       builder: (BuildContext context, Widget child, MainModel model) {
         final Widget pageContent = _buildPageContent(context, model);
-        return model.selectedProductIndex == null
+        return model.getSelectedProductIndex == null
             ? pageContent
             : Scaffold(
                 appBar: AppBar(title: Text('Edit Product')), body: pageContent);

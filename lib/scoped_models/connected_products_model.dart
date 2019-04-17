@@ -1,10 +1,28 @@
 import 'package:scoped_model/scoped_model.dart';
 
 import '../models/product.dart';
+import '../models/user.dart';
 
-mixin ProductsModel on Model {
+mixin ConnectedProductsModel on Model {
   final List<Product> _products = [];
+  User _authenticatedUser;
   int _selectedProductIndex;
+
+  void addProduct(
+      String title, String description, String image, double price) {
+    Product product = Product(
+        title: title,
+        description: description,
+        image: image,
+        price: price,
+        userEmail: _authenticatedUser.email,
+        userId: _authenticatedUser.id);
+    _products.add(product);
+    notifyListeners();
+  }
+}
+
+mixin ProductsModel on ConnectedProductsModel {
   bool _showFavorites = false;
 
   List<Product> get products {
@@ -18,7 +36,7 @@ mixin ProductsModel on Model {
     return List.from(_products);
   }
 
-  int get selectedProductIndex {
+  int get getSelectedProductIndex {
     return _selectedProductIndex;
   }
 
@@ -32,27 +50,30 @@ mixin ProductsModel on Model {
     return _showFavorites;
   }
 
-  void addProduct(Product product) {
-    _products.add(product);
-    _selectedProductIndex = null;
-    notifyListeners();
-  }
-
-  void updateProduct(Product product) {
+  void updateProduct(
+      String title, String description, String image, double price) {
+    Product product = Product(
+      title: title,
+      description: description,
+      image: image,
+      price: price,
+      userEmail: selectedProduct.userEmail,
+      userId: selectedProduct.userId,
+    );
     _products[_selectedProductIndex] = product;
-    _selectedProductIndex = null;
     notifyListeners();
   }
 
   void deleteProduct() {
     _products.removeAt(_selectedProductIndex);
-    _selectedProductIndex = null;
     notifyListeners();
   }
 
   void setSelectedProduct(int index) {
     _selectedProductIndex = index;
-    notifyListeners();
+    if (index != null) {
+      notifyListeners();
+    }
   }
 
   void toggleProductFavoriteStatus() {
@@ -66,14 +87,21 @@ mixin ProductsModel on Model {
       image: currentProduct.image,
       price: currentProduct.price,
       isFavourite: !currentFavoriteStatus,
+      userEmail: _authenticatedUser.email,
+      userId: _authenticatedUser.id,
     );
     _products[_selectedProductIndex] = newProduct;
     notifyListeners();
-    _selectedProductIndex = null;
   }
 
   void toggleDisplayMode() {
     _showFavorites = !_showFavorites;
     notifyListeners();
+  }
+}
+
+mixin UsersModel on ConnectedProductsModel {
+  void login(String email, String password) {
+    _authenticatedUser = User(id: '123124', email: email, password: password);
   }
 }
