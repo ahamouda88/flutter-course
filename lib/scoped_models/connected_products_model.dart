@@ -81,10 +81,10 @@ mixin ProductsModel on ConnectedProductsModel {
     return _showFavorites;
   }
 
-  void fetchProducts() {
+  Future<Null> fetchProducts() {
     _isLoading = true;
     notifyListeners();
-    http.get(getProductsEndpoint()).then((
+    return http.get(getProductsEndpoint()).then((
       http.Response response,
     ) {
       final List<Product> fetchedProductList = [];
