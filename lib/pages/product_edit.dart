@@ -74,7 +74,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     if (!_globalKey.currentState.validate()) return;
     _globalKey.currentState.save();
 
-    if (selectedProductIndex == null) {
+    if (selectedProductIndex == -1) {
       addProduct(
         _formData['title'],
         _formData['description'],
@@ -106,7 +106,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                   model.addProduct,
                   model.updateProduct,
                   model.setSelectedProduct,
-                  model.getSelectedProductIndex,
+                  model.selectedProductIndex,
                 ),
           );
   }
@@ -156,7 +156,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     return ScopedModelDescendant<MainModel>(
       builder: (BuildContext context, Widget child, MainModel model) {
         final Widget pageContent = _buildPageContent(context, model);
-        return model.getSelectedProductIndex == null
+        return model.selectedProductIndex == -1
             ? pageContent
             : Scaffold(
                 appBar: AppBar(title: Text('Edit Product')), body: pageContent);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import './product_edit.dart';
+import '../models/product.dart';
 import '../scoped_models/main_model.dart';
 
 class ProductListPage extends StatefulWidget {
@@ -26,7 +27,7 @@ class _ProductListPageState extends State<ProductListPage> {
     return IconButton(
         icon: Icon(Icons.edit),
         onPressed: () {
-          model.setSelectedProduct(index);
+          model.setSelectedProduct(model.products[index].id);
           Navigator.of(context)
               .push(
                 MaterialPageRoute(builder: (context) => ProductEditPage()),
@@ -43,11 +44,12 @@ class _ProductListPageState extends State<ProductListPage> {
       builder: (BuildContext context, Widget child, MainModel model) {
         return ListView.builder(
           itemBuilder: (BuildContext context, int index) {
+            Product currentProduct = model.products[index];
             return Dismissible(
               key: Key(index.toString()),
               onDismissed: (DismissDirection direction) {
                 if (direction == DismissDirection.endToStart) {
-                  model.setSelectedProduct(index);
+                  model.setSelectedProduct(currentProduct.id);
                   model.deleteProduct();
                 }
               },
@@ -58,12 +60,10 @@ class _ProductListPageState extends State<ProductListPage> {
                 children: <Widget>[
                   ListTile(
                     leading: CircleAvatar(
-                      backgroundImage:
-                          NetworkImage(model.products[index].image),
+                      backgroundImage: NetworkImage(currentProduct.image),
                     ),
-                    title: Text(model.products[index].title),
-                    subtitle:
-                        Text('\$${model.products[index].price.toString()}'),
+                    title: Text(currentProduct.title),
+                    subtitle: Text('\$${currentProduct.price.toString()}'),
                     trailing: _buildEditButton(context, index, model),
                   ),
                   Divider()
