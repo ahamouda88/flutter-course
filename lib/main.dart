@@ -19,8 +19,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
+    MainModel model = MainModel();
     return ScopedModel<MainModel>(
-      model: MainModel(),
+      model: model,
       child: MaterialApp(
         theme: ThemeData(
           primaryColor: Colors.red,
@@ -30,7 +31,7 @@ class _MyAppState extends State<MyApp> {
         routes: {
           '/': (context) => AuthPage(),
           '/admin': (context) => ProductsAdminPage(),
-          '/products': (context) => ProductsPage(),
+          '/products': (context) => ProductsPage(model),
         },
         onGenerateRoute: (RouteSettings settings) {
           // Example: /product/1 => '', 'product', '1'
@@ -50,7 +51,7 @@ class _MyAppState extends State<MyApp> {
         },
         onUnknownRoute: (RouteSettings settings) {
           return MaterialPageRoute(
-            builder: (context) => ProductsPage(),
+            builder: (context) => ProductsPage(model),
           );
         },
       ),

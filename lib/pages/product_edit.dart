@@ -80,7 +80,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         _formData['description'],
         _formData['imageUrl'],
         _formData['price'],
-      );
+      ).then((_) => _navigateToProducts(selectProduct));
     } else {
       updateProduct(
         _formData['title'],
@@ -89,21 +89,26 @@ class _ProductEditPageState extends State<ProductEditPage> {
         _formData['price'],
       );
     }
+  }
+
+  void _navigateToProducts(Function selectProduct) {
     Navigator.pushReplacementNamed(context, '/products')
         .then((_) => selectProduct(null));
   }
 
   Widget _buildSubmitButton(MainModel model) {
-    return RaisedButton(
-      textColor: Colors.white,
-      child: Text('Save'),
-      onPressed: () => _submitForm(
-            model.addProduct,
-            model.updateProduct,
-            model.setSelectedProduct,
-            model.getSelectedProductIndex,
-          ),
-    );
+    return model.isLoading
+        ? Center(child: CircularProgressIndicator())
+        : RaisedButton(
+            textColor: Colors.white,
+            child: Text('Save'),
+            onPressed: () => _submitForm(
+                  model.addProduct,
+                  model.updateProduct,
+                  model.setSelectedProduct,
+                  model.getSelectedProductIndex,
+                ),
+          );
   }
 
   Widget _buildPageContent(BuildContext context, MainModel model) {
