@@ -87,7 +87,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         _formData['description'],
         _formData['imageUrl'],
         _formData['price'],
-      );
+      ).then((_) => _navigateToProducts(selectProduct));
     }
   }
 

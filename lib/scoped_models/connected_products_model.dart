@@ -12,8 +12,13 @@ mixin ConnectedProductsModel on Model {
   User _authenticatedUser;
   int _selectedProductIndex;
   bool _isLoading = false;
-  final String _productsEndpoint =
-      'https://flutter-course-cd5a9.firebaseio.com/products.json';
+
+  String getProductsEndpoint([String id]) {
+    final String mainUrl =
+        'https://flutter-course-cd5a9.firebaseio.com/products';
+
+    return id == null ? mainUrl + '.json' : mainUrl + "/" + id + '.json';
+  }
 
   Future<Null> addProduct(
       String title, String description, String image, double price) {
@@ -30,7 +35,7 @@ mixin ConnectedProductsModel on Model {
     };
 
     return http
-        .post(_productsEndpoint, body: json.encode(productData))
+        .post(getProductsEndpoint(), body: json.encode(productData))
         .then((http.Response response) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       Product product = Product(
@@ -79,7 +84,7 @@ mixin ProductsModel on ConnectedProductsModel {
   void fetchProducts() {
     _isLoading = true;
     notifyListeners();
-    http.get(_productsEndpoint).then((
+    http.get(getProductsEndpoint()).then((
       http.Response response,
     ) {
       final List<Product> fetchedProductList = [];
@@ -104,23 +109,51 @@ mixin ProductsModel on ConnectedProductsModel {
     });
   }
 
-  void updateProduct(
+  Future<Null> updateProduct(
       String title, String description, String image, double price) {
-    Product product = Product(
-      title: title,
-      description: description,
-      image: image,
-      price: price,
-      userEmail: selectedProduct.userEmail,
-      userId: selectedProduct.userId,
-    );
-    _products[_selectedProductIndex] = product;
+    _isLoading = true;
     notifyListeners();
+    final Map<String, dynamic> productData = {
+      'title': title,
+      'description': description,
+      'image':
+          'https://5.imimg.com/data5/JW/VI/MY-48809272/snickers-50g-chocolate-bar-500x500.jpg',
+      'price': price,
+      'userEmail': selectedProduct.userEmail,
+      'userId': selectedProduct.userId
+    };
+
+    return http
+        .put(getProductsEndpoint(selectedProduct.id),
+            body: json.encode(productData))
+        .then((http.Response response) {
+      Product product = Product(
+        id: selectedProduct.id,
+        title: title,
+        description: description,
+        image: image,
+        price: price,
+        userEmail: selectedProduct.userEmail,
+        userId: selectedProduct.userId,
+      );
+      _products[_selectedProductIndex] = product;
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   void deleteProduct() {
+    _isLoading = true;
+    final String deletedProduct = selectedProduct.id;
     _products.removeAt(_selectedProductIndex);
+    _selectedProductIndex = null;
     notifyListeners();
+    http
+        .delete(getProductsEndpoint(deletedProduct))
+        .then((http.Response response) {
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   void setSelectedProduct(int index) {
