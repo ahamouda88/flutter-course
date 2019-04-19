@@ -20,7 +20,7 @@ mixin ConnectedProductsModel on Model {
     return id == null ? mainUrl + '.json' : mainUrl + "/" + id + '.json';
   }
 
-  Future<Null> addProduct(
+  Future<bool> addProduct(
       String title, String description, String image, double price) {
     _isLoading = true;
     notifyListeners();
@@ -36,7 +36,12 @@ mixin ConnectedProductsModel on Model {
 
     return http
         .post(getProductsEndpoint(), body: json.encode(productData))
-        .then((http.Response response) {
+        .then<bool>((http.Response response) {
+      if (response.statusCode > 201) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
       final Map<String, dynamic> responseData = json.decode(response.body);
       Product product = Product(
           id: responseData['name'],
@@ -49,6 +54,11 @@ mixin ConnectedProductsModel on Model {
       _products.add(product);
       _isLoading = false;
       notifyListeners();
+      return true;
+    }).catchError((error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
     });
   }
 }
@@ -86,7 +96,7 @@ mixin ProductsModel on ConnectedProductsModel {
   Future<Null> fetchProducts() {
     _isLoading = true;
     notifyListeners();
-    return http.get(getProductsEndpoint()).then((
+    return http.get(getProductsEndpoint()).then<Null>((
       http.Response response,
     ) {
       final List<Product> fetchedProductList = [];
@@ -109,10 +119,14 @@ mixin ProductsModel on ConnectedProductsModel {
       _isLoading = false;
       notifyListeners();
       _selectedProductId = null;
+    }).catchError((error) {
+      _isLoading = false;
+      notifyListeners();
+      return;
     });
   }
 
-  Future<Null> updateProduct(
+  Future<bool> updateProduct(
       String title, String description, String image, double price) {
     _isLoading = true;
     notifyListeners();
@@ -128,7 +142,7 @@ mixin ProductsModel on ConnectedProductsModel {
     return http
         .put(getProductsEndpoint(selectedProduct.id),
             body: json.encode(productData))
-        .then((http.Response response) {
+        .then<bool>((http.Response response) {
       Product product = Product(
         id: selectedProduct.id,
         title: title,
@@ -141,20 +155,30 @@ mixin ProductsModel on ConnectedProductsModel {
       _products[selectedProductIndex] = product;
       _isLoading = false;
       notifyListeners();
+      return true;
+    }).catchError((error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
     });
   }
 
-  void deleteProduct() {
+  Future<bool> deleteProduct() {
     _isLoading = true;
     final String deletedProduct = selectedProduct.id;
     _products.removeAt(selectedProductIndex);
     _selectedProductId = null;
     notifyListeners();
-    http
+    return http
         .delete(getProductsEndpoint(deletedProduct))
-        .then((http.Response response) {
+        .then<bool>((http.Response response) {
       _isLoading = false;
       notifyListeners();
+      return true;
+    }).catchError((error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
     });
   }
 

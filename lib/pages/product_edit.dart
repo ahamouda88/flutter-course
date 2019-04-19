@@ -80,20 +80,44 @@ class _ProductEditPageState extends State<ProductEditPage> {
         _formData['description'],
         _formData['imageUrl'],
         _formData['price'],
-      ).then((_) => _navigateToProducts(selectProduct));
+      ).then((bool success) {
+        _navigateToProducts(success, selectProduct);
+      });
     } else {
       updateProduct(
         _formData['title'],
         _formData['description'],
         _formData['imageUrl'],
         _formData['price'],
-      ).then((_) => _navigateToProducts(selectProduct));
+      ).then((bool success) {
+        _navigateToProducts(success, selectProduct);
+      });
     }
   }
 
-  void _navigateToProducts(Function selectProduct) {
-    Navigator.pushReplacementNamed(context, '/products')
-        .then((_) => selectProduct(null));
+  void _navigateToProducts(bool success, Function selectProduct) {
+    if (success) {
+      Navigator.pushReplacementNamed(context, '/products')
+          .then((_) => selectProduct(null));
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Something went wrong!'),
+            content: Text('Please try again.'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Ok'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        },
+      );
+    }
   }
 
   Widget _buildSubmitButton(MainModel model) {
