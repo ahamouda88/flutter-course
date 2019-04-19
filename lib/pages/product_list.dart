@@ -46,7 +46,7 @@ class _ProductListPageState extends State<ProductListPage> {
           itemBuilder: (BuildContext context, int index) {
             Product currentProduct = model.products[index];
             return Dismissible(
-              key: Key(index.toString()),
+              key: Key(currentProduct.title),
               onDismissed: (DismissDirection direction) {
                 if (direction == DismissDirection.endToStart) {
                   model.setSelectedProduct(currentProduct.id);

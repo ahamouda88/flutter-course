@@ -19,48 +19,6 @@ mixin ConnectedProductsModel on Model {
 
     return id == null ? mainUrl + '.json' : mainUrl + "/" + id + '.json';
   }
-
-  Future<bool> addProduct(
-      String title, String description, String image, double price) {
-    _isLoading = true;
-    notifyListeners();
-    final Map<String, dynamic> productData = {
-      'title': title,
-      'description': description,
-      'image':
-          'https://5.imimg.com/data5/JW/VI/MY-48809272/snickers-50g-chocolate-bar-500x500.jpg',
-      'price': price,
-      'userEmail': _authenticatedUser == null ? '' : _authenticatedUser.email,
-      'userId': _authenticatedUser == null ? '' : _authenticatedUser.id
-    };
-
-    return http
-        .post(getProductsEndpoint(), body: json.encode(productData))
-        .then<bool>((http.Response response) {
-      if (response.statusCode > 201) {
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      Product product = Product(
-          id: responseData['name'],
-          title: title,
-          description: description,
-          image: image,
-          price: price,
-          userEmail: _authenticatedUser == null ? '' : _authenticatedUser.email,
-          userId: _authenticatedUser == null ? '' : _authenticatedUser.id);
-      _products.add(product);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    }).catchError((error) {
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    });
-  }
 }
 
 mixin ProductsModel on ConnectedProductsModel {
@@ -124,6 +82,48 @@ mixin ProductsModel on ConnectedProductsModel {
       notifyListeners();
       return;
     });
+  }
+
+  Future<bool> addProduct(
+      String title, String description, String image, double price) async {
+    _isLoading = true;
+    notifyListeners();
+    final Map<String, dynamic> productData = {
+      'title': title,
+      'description': description,
+      'image':
+          'https://5.imimg.com/data5/JW/VI/MY-48809272/snickers-50g-chocolate-bar-500x500.jpg',
+      'price': price,
+      'userEmail': _authenticatedUser == null ? '' : _authenticatedUser.email,
+      'userId': _authenticatedUser == null ? '' : _authenticatedUser.id
+    };
+
+    try {
+      http.Response response = await http.post(getProductsEndpoint(),
+          body: json.encode(productData));
+      if (response.statusCode > 201) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      Product product = Product(
+          id: responseData['name'],
+          title: title,
+          description: description,
+          image: image,
+          price: price,
+          userEmail: _authenticatedUser == null ? '' : _authenticatedUser.email,
+          userId: _authenticatedUser == null ? '' : _authenticatedUser.id);
+      _products.add(product);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   Future<bool> updateProduct(
