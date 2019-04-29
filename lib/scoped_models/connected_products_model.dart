@@ -12,6 +12,7 @@ mixin ConnectedProductsModel on Model {
   User _authenticatedUser;
   String _selectedProductId;
   bool _isLoading = false;
+  String _apiKey = 'AIzaSyAZAVBSRwapvQbMuq-TZoUtzHTD7lqcH1s';
 
   String getProductsEndpoint([String id]) {
     final String mainUrl =
@@ -217,6 +218,34 @@ mixin ProductsModel on ConnectedProductsModel {
 mixin UsersModel on ConnectedProductsModel {
   void login(String email, String password) {
     _authenticatedUser = User(id: '123124', email: email, password: password);
+  }
+
+  Future<Map<String, dynamic>> signup(String email, String password) async {
+    _isLoading = true;
+    notifyListeners();
+    Map<String, dynamic> authData = {
+      'email': email,
+      'password': password,
+      'returnSecureToken': true
+    };
+    http.Response response = await http.post(
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=$_apiKey',
+        body: json.encode(authData));
+
+    final Map<String, dynamic> responseDate = json.decode(response.body);
+    bool isSuccess = true;
+    String message = 'Authentication Succeeded';
+    if (!responseDate.containsKey('idToken')) {
+      isSuccess = false;
+      if (responseDate['error']['message'] == 'EMAIL_EXISTS') {
+        message = 'Authentication Failed: Email already exists!';
+      } else {
+        message = 'Something went wrong: ${responseDate['error']['message']}';
+      }
+    }
+    _isLoading = false;
+    notifyListeners();
+    return {'success': isSuccess, 'message': message};
   }
 }
 
