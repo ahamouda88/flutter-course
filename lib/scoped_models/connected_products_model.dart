@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:scoped_model/scoped_model.dart';
 
+import '../models/auth.dart';
 import '../models/product.dart';
 import '../models/user.dart';
 
@@ -216,11 +217,8 @@ mixin ProductsModel on ConnectedProductsModel {
 }
 
 mixin UsersModel on ConnectedProductsModel {
-  void login(String email, String password) {
-    _authenticatedUser = User(id: '123124', email: email, password: password);
-  }
-
-  Future<Map<String, dynamic>> signup(String email, String password) async {
+  Future<Map<String, dynamic>> authenticate(String email, String password,
+      [AuthMode authMode = AuthMode.Login]) async {
     _isLoading = true;
     notifyListeners();
     Map<String, dynamic> authData = {
@@ -228,9 +226,15 @@ mixin UsersModel on ConnectedProductsModel {
       'password': password,
       'returnSecureToken': true
     };
-    http.Response response = await http.post(
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=$_apiKey',
-        body: json.encode(authData));
+    String url;
+    if (authMode == AuthMode.Login) {
+      url =
+          'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=$_apiKey';
+    } else {
+      url =
+          'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=$_apiKey';
+    }
+    http.Response response = await http.post(url, body: json.encode(authData));
 
     final Map<String, dynamic> responseDate = json.decode(response.body);
     bool isSuccess = true;
@@ -239,6 +243,10 @@ mixin UsersModel on ConnectedProductsModel {
       isSuccess = false;
       if (responseDate['error']['message'] == 'EMAIL_EXISTS') {
         message = 'Authentication Failed: Email already exists!';
+      } else if (responseDate['error']['message'] == 'EMAIL_NOT_FOUND') {
+        message = 'Authentication Failed: Email was not found!';
+      } else if (responseDate['error']['message'] == 'INVALID_PASSWORD') {
+        message = 'Authentication Failed: Invalid password!';
       } else {
         message = 'Something went wrong: ${responseDate['error']['message']}';
       }
