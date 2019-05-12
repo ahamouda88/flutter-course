@@ -19,7 +19,9 @@ mixin ConnectedProductsModel on Model {
     final String mainUrl =
         'https://flutter-course-cd5a9.firebaseio.com/products';
 
-    return id == null ? mainUrl + '.json' : mainUrl + "/" + id + '.json';
+    return id == null
+        ? mainUrl + '.json?auth=${_authenticatedUser.token}'
+        : mainUrl + "/" + id + '.json?auth=${_authenticatedUser.token}';
   }
 }
 
@@ -202,8 +204,8 @@ mixin ProductsModel on ConnectedProductsModel {
       image: selectedProduct.image,
       price: selectedProduct.price,
       isFavourite: !currentFavoriteStatus,
-      userEmail: _authenticatedUser.email,
-      userId: _authenticatedUser.id,
+      userEmail: selectedProduct.userEmail,
+      userId: selectedProduct.userId,
     );
     _products[selectedProductIndex] = newProduct;
     notifyListeners();
@@ -250,6 +252,11 @@ mixin UsersModel on ConnectedProductsModel {
       } else {
         message = 'Something went wrong: ${responseDate['error']['message']}';
       }
+    } else {
+      _authenticatedUser = User(
+          id: responseDate['localId'],
+          email: responseDate['email'],
+          token: responseDate['idToken']);
     }
     _isLoading = false;
     notifyListeners();
