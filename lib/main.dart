@@ -18,11 +18,24 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  MainModel _model = MainModel();
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    _model.autoAuthenticate();
+    _model.userSubject.listen((bool isAuthenticated) {
+      setState(() {
+        this._isAuthenticated = isAuthenticated;
+      });
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    MainModel model = MainModel();
     return ScopedModel<MainModel>(
-      model: model,
+      model: _model,
       child: MaterialApp(
         theme: ThemeData(
           primaryColor: Colors.red,
@@ -30,9 +43,12 @@ class _MyAppState extends State<MyApp> {
           buttonColor: Colors.purple,
         ),
         routes: {
-          '/': (context) => AuthPage(),
-          '/admin': (context) => ProductsAdminPage(model),
-          '/products': (context) => ProductsPage(model),
+          '/': (BuildContext context) =>
+              _isAuthenticated ? ProductsPage(_model) : AuthPage(),
+          '/admin': (BuildContext context) =>
+              _isAuthenticated ? ProductsAdminPage(_model) : AuthPage(),
+          '/products': (BuildContext context) =>
+              _isAuthenticated ? ProductsPage(_model) : AuthPage(),
         },
         onGenerateRoute: (RouteSettings settings) {
           // Example: /product/1 => '', 'product', '1'
@@ -42,12 +58,12 @@ class _MyAppState extends State<MyApp> {
           if (pathElements[1] == 'product') {
             final String productId = pathElements[2];
 
-            Product product =
-                model.products.firstWhere((product) => product.id == productId);
+            Product product = _model.products
+                .firstWhere((product) => product.id == productId);
 
             return MaterialPageRoute<bool>(
               builder: (context) {
-                return ProductPage(product);
+                return _isAuthenticated ? ProductPage(product) : AuthPage();
               },
             );
           }
@@ -55,7 +71,8 @@ class _MyAppState extends State<MyApp> {
         },
         onUnknownRoute: (RouteSettings settings) {
           return MaterialPageRoute(
-            builder: (context) => ProductsPage(model),
+            builder: (context) =>
+                _isAuthenticated ? ProductsPage(_model) : AuthPage(),
           );
         },
       ),

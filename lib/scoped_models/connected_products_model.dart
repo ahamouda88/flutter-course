@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:rxdart/subjects.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/auth.dart';
 import '../models/product.dart';
@@ -15,13 +17,17 @@ mixin ConnectedProductsModel on Model {
   bool _isLoading = false;
   String _apiKey = 'AIzaSyAZAVBSRwapvQbMuq-TZoUtzHTD7lqcH1s';
 
-  String getProductsEndpoint([String id]) {
+  String getProductsEndpoint([String id, String extraPath = '']) {
     final String mainUrl =
         'https://flutter-course-cd5a9.firebaseio.com/products';
 
     return id == null
         ? mainUrl + '.json?auth=${_authenticatedUser.token}'
-        : mainUrl + "/" + id + '.json?auth=${_authenticatedUser.token}';
+        : mainUrl +
+            "/" +
+            id +
+            extraPath +
+            '.json?auth=${_authenticatedUser.token}';
   }
 }
 
@@ -55,7 +61,7 @@ mixin ProductsModel on ConnectedProductsModel {
     return _showFavorites;
   }
 
-  Future<Null> fetchProducts() {
+  Future<Null> fetchProducts({bool onlyForUser = false}) {
     _isLoading = true;
     notifyListeners();
     return http.get(getProductsEndpoint()).then<Null>((
@@ -66,15 +72,21 @@ mixin ProductsModel on ConnectedProductsModel {
 
       if (productListData != null) {
         productListData.forEach((String key, dynamic productData) {
-          final Product product = Product(
-              id: key,
-              title: productData['title'],
-              description: productData['description'],
-              image: productData['image'],
-              price: productData['price'],
-              userId: productData['userId'],
-              userEmail: productData['userEmail']);
-          fetchedProductList.add(product);
+          if (!onlyForUser || _authenticatedUser.id == productData['userId']) {
+            final bool isFavourite = productData['whitelistUser'] != null &&
+                (productData['whitelistUser'] as Map<String, dynamic>)
+                    .containsKey(_authenticatedUser.id);
+            final Product product = Product(
+                id: key,
+                title: productData['title'],
+                description: productData['description'],
+                image: productData['image'],
+                price: productData['price'],
+                userId: productData['userId'],
+                userEmail: productData['userEmail'],
+                isFavourite: isFavourite);
+            fetchedProductList.add(product);
+          }
         });
         _products = fetchedProductList;
       }
@@ -193,7 +205,7 @@ mixin ProductsModel on ConnectedProductsModel {
     }
   }
 
-  void toggleProductFavoriteStatus() {
+  void toggleProductFavoriteStatus() async {
     if (_selectedProductId == null) return;
 
     bool currentFavoriteStatus = selectedProduct.isFavourite;
@@ -209,6 +221,31 @@ mixin ProductsModel on ConnectedProductsModel {
     );
     _products[selectedProductIndex] = newProduct;
     notifyListeners();
+    http.Response response;
+    final String whitelistUserPath = '/whitelistUser/${_authenticatedUser.id}';
+    if (!currentFavoriteStatus) {
+      response = await http.put(
+          getProductsEndpoint(_selectedProductId, whitelistUserPath),
+          body: json.encode(true));
+    } else {
+      response = await http
+          .delete(getProductsEndpoint(_selectedProductId, whitelistUserPath));
+    }
+    // Rollback the local change
+    if (response.statusCode != 200) {
+      Product newProduct = Product(
+        id: selectedProduct.id,
+        title: selectedProduct.title,
+        description: selectedProduct.description,
+        image: selectedProduct.image,
+        price: selectedProduct.price,
+        isFavourite: !currentFavoriteStatus,
+        userEmail: selectedProduct.userEmail,
+        userId: selectedProduct.userId,
+      );
+      _products[selectedProductIndex] = newProduct;
+      notifyListeners();
+    }
     _selectedProductId = null;
   }
 
@@ -219,6 +256,12 @@ mixin ProductsModel on ConnectedProductsModel {
 }
 
 mixin UsersModel on ConnectedProductsModel {
+  Timer _authTimer;
+  PublishSubject<bool> _userSubject = PublishSubject();
+
+  User get user => _authenticatedUser;
+  PublishSubject<bool> get userSubject => _userSubject;
+
   Future<Map<String, dynamic>> authenticate(String email, String password,
       [AuthMode authMode = AuthMode.Login]) async {
     _isLoading = true;
@@ -253,14 +296,61 @@ mixin UsersModel on ConnectedProductsModel {
         message = 'Something went wrong: ${responseDate['error']['message']}';
       }
     } else {
-      _authenticatedUser = User(
-          id: responseDate['localId'],
-          email: responseDate['email'],
-          token: responseDate['idToken']);
+      final String localId = responseDate['localId'];
+      final String token = responseDate['idToken'];
+      final String email = responseDate['email'];
+      final int expiryTime = int.parse(responseDate['expiresIn']);
+      setAutoTimeout(expiryTime);
+      _userSubject.add(true);
+      final DateTime now = DateTime.now();
+      final DateTime expiryDate = now.add(Duration(seconds: expiryTime));
+      _authenticatedUser = User(id: localId, email: email, token: token);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('token', token);
+      prefs.setString('userEmail', email);
+      prefs.setString('userId', localId);
+      prefs.setString('expiryTime', expiryDate.toIso8601String());
     }
     _isLoading = false;
     notifyListeners();
     return {'success': isSuccess, 'message': message};
+  }
+
+  void logout() async {
+    _authenticatedUser = null;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('token');
+    prefs.remove('userEmail');
+    prefs.remove('userId');
+    _authTimer.cancel();
+    _userSubject.add(false);
+    notifyListeners();
+  }
+
+  void autoAuthenticate() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String token = prefs.get('token');
+
+    if (token != null) {
+      final String expiryDateString = prefs.get('expiryTime');
+      final DateTime now = DateTime.now();
+      final DateTime expiryDate = DateTime.parse(expiryDateString);
+      if (expiryDate.isAfter(now)) {
+        logout();
+        return;
+      }
+      final String email = prefs.get('userEmail');
+      final String localId = prefs.get('userId');
+      final int tokenLifespan = expiryDate.difference(now).inSeconds;
+      setAutoTimeout(tokenLifespan);
+      _userSubject.add(true);
+      _authenticatedUser = User(id: localId, email: email, token: token);
+      notifyListeners();
+    }
+  }
+
+  void setAutoTimeout(int time) {
+    _authTimer = Timer(Duration(seconds: time), logout);
   }
 }
 
