@@ -13,6 +13,10 @@ class ProductEditPage extends StatefulWidget {
 }
 
 class _ProductEditPageState extends State<ProductEditPage> {
+  final TextEditingController _descriptionTextController =
+      TextEditingController();
+  final TextEditingController _titleTextController = TextEditingController();
+
   final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
   final Map<String, dynamic> _formData = {
     'title': null,
@@ -22,32 +26,39 @@ class _ProductEditPageState extends State<ProductEditPage> {
   };
 
   Widget _buildTitleTextField(Product product) {
+    if (product != null) {
+      if (_titleTextController.text.trim() == '') {
+        _titleTextController.text = product.title;
+      }
+    } else {
+      _titleTextController.text = '';
+    }
     return TextFormField(
-      decoration: InputDecoration(labelText: 'Product Title'),
-      initialValue: product == null ? '' : product.title,
-      validator: (String value) {
-        if (value.trim().length < 5) {
-          return 'Title is Required and should be 5+ chars!';
-        }
-      },
-      onSaved: (String value) {
-        _formData['title'] = value;
-      },
-    );
+        decoration: InputDecoration(labelText: 'Product Title'),
+        controller: _titleTextController,
+        validator: (String value) {
+          if (value.trim().length < 5) {
+            return 'Title is Required and should be 5+ chars!';
+          }
+        });
   }
 
   Widget _buildDescriptionTextField(Product product) {
+    if (product != null) {
+      if (_descriptionTextController.text.trim() == '') {
+        _descriptionTextController.text = product.description;
+      }
+    } else {
+      _descriptionTextController.text = '';
+    }
     return TextFormField(
       decoration: InputDecoration(labelText: 'Product Description'),
       maxLines: 4,
-      initialValue: product == null ? '' : product.description,
+      controller: _descriptionTextController,
       validator: (String value) {
         if (value.trim().length < 5) {
           return 'Description is Required and should be 10+ chars!';
         }
-      },
-      onSaved: (String value) {
-        _formData['description'] = value;
       },
     );
   }
@@ -77,8 +88,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
     if (selectedProductIndex == -1) {
       addProduct(
-        _formData['title'],
-        _formData['description'],
+        _titleTextController.text,
+        _descriptionTextController.text,
         _formData['imageUrl'],
         _formData['price'],
       ).then((bool success) {
@@ -86,8 +97,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
       });
     } else {
       updateProduct(
-        _formData['title'],
-        _formData['description'],
+        _titleTextController.text,
+        _descriptionTextController.text,
         _formData['imageUrl'],
         _formData['price'],
       ).then((bool success) {
@@ -159,18 +170,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
               ImageInput(),
               SizedBox(height: 10.0),
               _buildSubmitButton(model),
-//          GestureDetector(
-//            onTap: _saveProduct,
-//            child: Container(
-//              child: Text(
-//                'My Button',
-//                style: TextStyle(color: Colors.white),
-//                textAlign: TextAlign.center,
-//              ),
-//              color: Colors.purple,
-//              padding: EdgeInsets.all(5.0),
-//            ),
-//          )
             ],
           ),
         ),

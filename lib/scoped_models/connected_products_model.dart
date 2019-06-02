@@ -300,7 +300,7 @@ mixin UsersModel on ConnectedProductsModel {
       final String token = responseDate['idToken'];
       final String email = responseDate['email'];
       final int expiryTime = int.parse(responseDate['expiresIn']);
-      setAutoTimeout(expiryTime);
+      _setAutoTimeout(expiryTime);
       _userSubject.add(true);
       final DateTime now = DateTime.now();
       final DateTime expiryDate = now.add(Duration(seconds: expiryTime));
@@ -342,14 +342,14 @@ mixin UsersModel on ConnectedProductsModel {
       final String email = prefs.get('userEmail');
       final String localId = prefs.get('userId');
       final int tokenLifespan = expiryDate.difference(now).inSeconds;
-      setAutoTimeout(tokenLifespan);
+      _setAutoTimeout(tokenLifespan);
       _userSubject.add(true);
       _authenticatedUser = User(id: localId, email: email, token: token);
       notifyListeners();
     }
   }
 
-  void setAutoTimeout(int time) {
+  void _setAutoTimeout(int time) {
     _authTimer = Timer(Duration(seconds: time), logout);
   }
 }
